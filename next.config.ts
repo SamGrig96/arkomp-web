@@ -6,10 +6,15 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   compress: true,
+  // "/" has no content of its own: both languages are prefixed, matching
+  // arkomp.am's own /hy and /ru URLs.
+  async redirects() {
+    return [{ source: "/", destination: "/hy", permanent: false }];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     // Add the CDN/host that serves product images here, e.g.
-    // remotePatterns: [{ protocol: "https", hostname: "cdn.buy.am" }],
+    // remotePatterns: [{ protocol: "https", hostname: "cdn.arkomp.am" }],
     remotePatterns: [],
   },
 };

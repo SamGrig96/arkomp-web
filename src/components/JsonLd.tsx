@@ -1,17 +1,32 @@
-import { company, familyLabels, products, socials } from "@/lib/content";
-import { absoluteUrl, site } from "@/lib/site";
+import {
+  contact,
+  getProducts,
+  socials,
+  type Dictionary,
+} from "@/lib/content";
+import { localePath, localeTags, type Locale } from "@/lib/i18n";
+import { absoluteUrl } from "@/lib/site";
 
 /**
  * Structured data for the whole site: the supplier as a LocalBusiness (so the
  * address, phone and opening hours can surface in local results), the WebSite
  * node, and the product catalogue as an ItemList.
  *
- * Rendered from the root layout, so it ships inside the server HTML.
+ * Rendered from the locale layout, so it ships inside the server HTML and
+ * describes the language the visitor is actually on.
  */
-export function JsonLd() {
+export function JsonLd({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
   const sameAs = socials
     .map((s) => s.href)
     .filter((href): href is string => Boolean(href));
+  const home = absoluteUrl(localePath(locale));
+  const products = getProducts(dict);
 
   const graph = {
     "@context": "https://schema.org",
@@ -19,25 +34,25 @@ export function JsonLd() {
       {
         "@type": ["Organization", "LocalBusiness"],
         "@id": absoluteUrl("/#organization"),
-        name: company.legalName,
-        alternateName: company.latinName,
-        description: site.description,
-        slogan: company.tagline,
-        url: site.url,
+        name: dict.company.legalName,
+        alternateName: dict.company.latinName,
+        description: dict.meta.description,
+        slogan: dict.company.tagline,
+        url: home,
         logo: absoluteUrl("/arkomp-logo.png"),
         image: absoluteUrl("/arkomp-logo.png"),
-        telephone: company.phone,
-        email: company.email,
+        telephone: contact.phone,
+        email: contact.email,
         address: {
           "@type": "PostalAddress",
-          streetAddress: company.address.street,
-          addressLocality: company.address.city,
-          addressCountry: company.address.country,
+          streetAddress: dict.company.address.street,
+          addressLocality: dict.company.address.city,
+          addressCountry: "AM",
         },
         geo: {
           "@type": "GeoCoordinates",
-          latitude: company.geo.lat,
-          longitude: company.geo.lng,
+          latitude: contact.geo.lat,
+          longitude: contact.geo.lng,
         },
         openingHoursSpecification: [
           {
@@ -57,24 +72,24 @@ export function JsonLd() {
       },
       {
         "@type": "WebSite",
-        "@id": absoluteUrl("/#website"),
-        url: site.url,
-        name: company.legalName,
-        description: site.description,
-        inLanguage: site.locale,
+        "@id": `${home}#website`,
+        url: home,
+        name: dict.company.legalName,
+        description: dict.meta.description,
+        inLanguage: localeTags[locale],
         publisher: { "@id": absoluteUrl("/#organization") },
       },
       {
         "@type": "ItemList",
-        "@id": absoluteUrl("/#catalog"),
-        name: "Տեսականի",
+        "@id": `${home}#catalog`,
+        name: dict.home.catalogTitle,
         numberOfItems: products.length,
         itemListElement: products.map((product, i) => ({
           "@type": "ListItem",
           position: i + 1,
           name: product.title,
-          category: familyLabels[product.family],
-          url: absoluteUrl(`/products/${product.slug}`),
+          category: product.familyLabel,
+          url: absoluteUrl(localePath(locale, `products/${product.slug}`)),
         })),
       },
     ],

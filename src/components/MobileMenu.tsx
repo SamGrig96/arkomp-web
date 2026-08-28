@@ -2,13 +2,33 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-import { company, nav } from "@/lib/content";
+
+export type MenuLink = { href: string; label: string };
 
 /**
  * The ☰ menu from the mobile design. Shown below 1200px, where the inline nav
  * does not fit — without it those viewports would have no navigation at all.
+ *
+ * Takes plain strings rather than the dictionary: the dictionary holds
+ * formatting functions, which cannot cross the server/client boundary.
  */
-export function MobileMenu() {
+export function MobileMenu({
+  links,
+  phone,
+  phoneHref,
+  cta,
+  navAria,
+  openLabel,
+  closeLabel,
+}: {
+  links: MenuLink[];
+  phone: string;
+  phoneHref: string;
+  cta: MenuLink;
+  navAria: string;
+  openLabel: string;
+  closeLabel: string;
+}) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
 
@@ -28,7 +48,7 @@ export function MobileMenu() {
         className="menu-toggle"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={open ? "Փակել մենյուն" : "Բացել մենյուն"}
+        aria-label={open ? closeLabel : openLabel}
         onClick={() => setOpen((v) => !v)}
       >
         <span aria-hidden="true">{open ? "✕" : "☰"}</span>
@@ -42,8 +62,8 @@ export function MobileMenu() {
             aria-hidden="true"
           />
           <div className="menu-panel" id={panelId}>
-            <nav aria-label="Հիմնական">
-              {nav.map((item) => (
+            <nav aria-label={navAria}>
+              {links.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -53,15 +73,15 @@ export function MobileMenu() {
                 </Link>
               ))}
             </nav>
-            <a className="menu-panel__phone" href={company.phoneHref}>
-              {company.phone}
+            <a className="menu-panel__phone" href={phoneHref}>
+              {phone}
             </a>
             <Link
               className="btn btn-primary"
-              href="/#contact"
+              href={cta.href}
               onClick={() => setOpen(false)}
             >
-              Հարցում ուղարկել
+              {cta.label}
             </Link>
           </div>
         </>

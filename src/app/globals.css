@@ -32,7 +32,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-noto-armenian);
+  --font-sans: var(--font-noto-armenian), var(--font-noto);
   --font-mono: var(--font-jetbrains-mono);
 }
 
@@ -56,7 +56,7 @@ body {
   margin: 0;
   background: #fff;
   color: var(--ink);
-  font-family: var(--font-noto-armenian), system-ui, sans-serif;
+  font-family: var(--font-noto-armenian), var(--font-noto), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

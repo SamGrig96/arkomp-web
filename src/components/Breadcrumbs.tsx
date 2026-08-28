@@ -7,7 +7,13 @@ export type Crumb = { label: string; href?: string };
  * Breadcrumb bar plus its BreadcrumbList JSON-LD, so the trail can show up in
  * search results instead of a bare URL.
  */
-export function Breadcrumbs({ trail }: { trail: Crumb[] }) {
+export function Breadcrumbs({
+  trail,
+  ariaLabel,
+}: {
+  trail: Crumb[];
+  ariaLabel: string;
+}) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -21,7 +27,7 @@ export function Breadcrumbs({ trail }: { trail: Crumb[] }) {
 
   return (
     <div className="crumbs">
-      <nav className="container crumbs__inner" aria-label="Դուք այստեղ եք">
+      <nav className="container crumbs__inner" aria-label={ariaLabel}>
         {trail.map((crumb, i) => (
           <span className="crumbs__item" key={crumb.label}>
             {crumb.href ? (

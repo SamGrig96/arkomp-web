@@ -1,27 +1,35 @@
 import Link from "next/link";
-import { company } from "@/lib/content";
+import { contact, type Dictionary } from "@/lib/content";
+import { localePath, type Locale } from "@/lib/i18n";
 
-/** Closing call-to-action band that ends every product page. */
+/** Closing call-to-action band that ends every catalogue and product page. */
 export function ProductCta({
-  heading = "Ասեք չափսը և բեռնվածությունը՝ կառաջարկենք տարբերակը",
+  locale,
+  dict,
+  heading,
 }: {
+  locale: Locale;
+  dict: Dictionary;
   heading?: string;
 }) {
   return (
     <section className="pcta" id="pcta">
       <div className="container pcta__inner">
         <div>
-          <h2>{heading}</h2>
+          <h2>{heading ?? dict.product.ctaHeading}</h2>
           <p>
-            {company.address.full} · {company.hours}
+            {dict.company.address.full} · {dict.company.hours}
           </p>
         </div>
         <div className="pcta__actions">
-          <a className="btn btn-primary" href={company.phoneHref}>
-            {company.phone}
+          <a className="btn btn-primary" href={contact.phoneHref}>
+            {contact.phone}
           </a>
-          <Link className="btn btn-ghost-dark" href="/#contact">
-            Գրել հարցում
+          <Link
+            className="btn btn-ghost-dark"
+            href={`${localePath(locale)}#contact`}
+          >
+            {dict.product.ctaSecondary}
           </Link>
         </div>
       </div>

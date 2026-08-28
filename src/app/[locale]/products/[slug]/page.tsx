@@ -7,69 +7,84 @@ import { Header } from "@/components/Header";
 import { ImageSlot } from "@/components/ImageSlot";
 import { ProductCta } from "@/components/ProductCta";
 import {
-  company,
-  defaultSpecs,
-  familyLabels,
+  contact,
+  getDictionary,
   getProduct,
-  products,
-  relatedProducts,
+  getRelated,
+  productSlugs,
 } from "@/lib/content";
-import { absoluteUrl } from "@/lib/site";
+import { isLocale, localePath, locales } from "@/lib/i18n";
+import { absoluteUrl, alternatesFor } from "@/lib/site";
 
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return locales.flatMap((locale) =>
+    productSlugs.map((slug) => ({ locale, slug })),
+  );
 }
 
-/** Factual fallback description for groups whose copy the company still owes us. */
-const fallbackDescription = (title: string, family: string) =>
-  `${title} — ԱՐԿՈՄՊ ՍՊԸ-ի տեսականու «${family}» ուղղության ապրանքախումբ։ Չափսերը և առկայությունը ճշտեք ${company.phone} հեռախոսով։`;
+type Params = Promise<{ locale: string; slug: string }>;
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Params;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const product = getProduct(slug);
+  const { locale, slug } = await params;
+  if (!isLocale(locale)) return {};
+  const dict = getDictionary(locale);
+  const product = getProduct(dict, slug);
   if (!product) return {};
 
-  const family = familyLabels[product.family];
+  const description =
+    product.lead ??
+    product.short ??
+    dict.product.fallbackDescription(
+      product.title,
+      product.familyLabel,
+      contact.phone,
+    );
+
   return {
     title: product.title,
-    description: product.lead ?? product.short ?? fallbackDescription(product.title, family),
-    alternates: { canonical: `/products/${product.slug}` },
+    description,
+    alternates: alternatesFor(locale, `products/${product.slug}`),
     openGraph: {
-      title: `${product.title} | ${company.legalName}`,
-      description:
-        product.lead ?? product.short ?? fallbackDescription(product.title, family),
-      url: `/products/${product.slug}`,
+      title: `${product.title} | ${dict.company.legalName}`,
+      description,
+      url: localePath(locale, `products/${product.slug}`),
     },
   };
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const product = getProduct(slug);
+export default async function ProductPage({ params }: { params: Params }) {
+  const { locale, slug } = await params;
+  if (!isLocale(locale)) notFound();
+
+  const dict = getDictionary(locale);
+  const product = getProduct(dict, slug);
   if (!product) notFound();
 
-  const family = familyLabels[product.family];
-  const related = relatedProducts(product);
-  const specs = product.specs ?? defaultSpecs;
+  const related = getRelated(dict, product);
+  const specs = product.specs ?? dict.defaultSpecs;
   const description =
-    product.lead ?? product.short ?? fallbackDescription(product.title, family);
+    product.lead ??
+    product.short ??
+    dict.product.fallbackDescription(
+      product.title,
+      product.familyLabel,
+      contact.phone,
+    );
+  const catalogLabel =
+    dict.nav.find((item) => item.key === "products")?.label ?? "";
 
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.title,
     description,
-    category: family,
-    url: absoluteUrl(`/products/${product.slug}`),
-    brand: { "@type": "Brand", name: company.latinName },
+    category: product.familyLabel,
+    url: absoluteUrl(localePath(locale, `products/${product.slug}`)),
+    brand: { "@type": "Brand", name: dict.company.latinName },
     ...(product.variants
       ? {
           hasVariant: product.variants.map((v) => ({
@@ -82,12 +97,21 @@ export default async function ProductPage({
 
   return (
     <>
-      <Header active="Տեսականի" />
+      <Header
+        locale={locale}
+        dict={dict}
+        active="products"
+        altPath={`products/${product.slug}`}
+      />
       <Breadcrumbs
+        ariaLabel={dict.ui.breadcrumbAria}
         trail={[
-          { label: "Գլխավոր", href: "/" },
-          { label: "Տեսականի", href: "/products" },
-          { label: family, href: `/products#${product.family}` },
+          { label: dict.ui.breadcrumbHome, href: localePath(locale) },
+          { label: catalogLabel, href: localePath(locale, "products") },
+          {
+            label: product.familyLabel,
+            href: `${localePath(locale, "products")}#${product.family}`,
+          },
           { label: product.title },
         ]}
       />
@@ -98,28 +122,28 @@ export default async function ProductPage({
           <div className="container phero__grid">
             <div className="phero__gallery">
               <div className="phero__main">
-                <ImageSlot label="Ապրանքի հիմնական լուսանկար" />
+                <ImageSlot label={dict.imageSlots.productMain} />
               </div>
               <div className="phero__thumbs">
-                {["Դետալ 1", "Դետալ 2", "Դետալ 3"].map((label) => (
-                  <div className="phero__thumb" key={label}>
-                    <ImageSlot label={label} />
+                {[1, 2, 3].map((n) => (
+                  <div className="phero__thumb" key={n}>
+                    <ImageSlot label={dict.imageSlots.detail(n)} />
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="phero__copy">
-              <p className="eyebrow">{family}</p>
+              <p className="eyebrow">{product.familyLabel}</p>
               <h1>{product.title}</h1>
               <p className="phero__lead">{description}</p>
 
               <div className="phero__cta">
                 <a className="btn btn-primary" href="#pcta">
-                  Ճշտել առկայությունը
+                  {dict.product.checkAvailability}
                 </a>
-                <a className="btn btn-outline" href={company.phoneHref}>
-                  {company.phone}
+                <a className="btn btn-outline" href={contact.phoneHref}>
+                  {contact.phone}
                 </a>
               </div>
 
@@ -134,9 +158,9 @@ export default async function ProductPage({
                 </dl>
               ) : (
                 <p className="note">
-                  Այս ապրանքախմբի մանրամասն նկարագրությունը{" "}
-                  <span className="pill-todo">լրացվում է</span>։ Մինչ այդ՝
-                  զանգահարեք, և կասենք ինչ չափսեր ու տեսակներ կան։
+                  {dict.product.noDescription[0]}{" "}
+                  <span className="pill-todo">{dict.ui.fillingIn}</span>
+                  {dict.product.noDescription[1]}
                 </p>
               )}
             </div>
@@ -147,7 +171,7 @@ export default async function ProductPage({
         {product.variants ? (
           <section className="variants">
             <div className="container">
-              <h2 className="section-title">Առկա տեսակներ</h2>
+              <h2 className="section-title">{dict.product.variantsTitle}</h2>
               <ul className="variants__list">
                 {product.variants.map((variant) => (
                   <li key={variant}>{variant}</li>
@@ -161,7 +185,7 @@ export default async function ProductPage({
         {product.features ? (
           <section className="pfeatures">
             <div className="container">
-              <h2 className="section-title">Առավելություններ</h2>
+              <h2 className="section-title">{dict.product.featuresTitle}</h2>
               <ul className="pfeatures__grid">
                 {product.features.map((f) => (
                   <li className="pfeature" key={f.n}>
@@ -179,19 +203,16 @@ export default async function ProductPage({
         <section className="pspecs">
           <div className="container pspecs__grid">
             <div>
-              <h2 className="section-title">Տեխնիկական տվյալներ</h2>
-              <p className="pspecs__note">
-                Աղյուսակի կառուցվածքը կրկնվում է բոլոր ապրանքային էջերում։
-                Արժեքները լրացվում են ընկերության մատակարարման տվյալներից։
-              </p>
-              <span className="pill-todo">լրացվում է</span>
+              <h2 className="section-title">{dict.product.specsTitle}</h2>
+              <p className="pspecs__note">{dict.product.specsNote}</p>
+              <span className="pill-todo">{dict.ui.fillingIn}</span>
             </div>
             <table className="spec-table">
               <tbody>
                 {specs.map((label) => (
                   <tr key={label}>
                     <th scope="row">{label}</th>
-                    <td>— — —</td>
+                    <td>{dict.product.specsEmpty}</td>
                   </tr>
                 ))}
               </tbody>
@@ -203,11 +224,11 @@ export default async function ProductPage({
         {related.length > 0 ? (
           <section className="related">
             <div className="container">
-              <h2 className="section-title">Հարակից ապրանքախմբեր</h2>
+              <h2 className="section-title">{dict.product.relatedTitle}</h2>
               <ul className="related__grid">
                 {related.map((r) => (
                   <li className="related__card" key={r.slug}>
-                    <Link href={`/products/${r.slug}`}>
+                    <Link href={localePath(locale, `products/${r.slug}`)}>
                       <div className="related__media">
                         <ImageSlot label={r.title} />
                       </div>
@@ -223,10 +244,10 @@ export default async function ProductPage({
           </section>
         ) : null}
 
-        <ProductCta />
+        <ProductCta locale={locale} dict={dict} />
       </main>
 
-      <Footer />
+      <Footer locale={locale} dict={dict} />
 
       <script
         type="application/ld+json"

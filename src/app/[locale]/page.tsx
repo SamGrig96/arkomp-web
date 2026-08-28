@@ -1,37 +1,58 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ImageSlot } from "@/components/ImageSlot";
 import {
-  aboutParagraphs,
-  company,
-  contacts,
-  facts,
-  families,
-  familyLabels,
-  featured,
-  heroLead,
-  props4,
+  contact,
+  getDictionary,
+  getFamilies,
+  getFeatured,
   socials,
-  why,
 } from "@/lib/content";
-import { site } from "@/lib/site";
+import { isLocale, localePath, locales } from "@/lib/i18n";
+import { alternatesFor } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: site.title,
-  description: site.description,
-  alternates: { canonical: "/" },
-};
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  const dict = getDictionary(locale);
+  return {
+    title: dict.meta.title,
+    description: dict.meta.description,
+    alternates: alternatesFor(locale),
+  };
+}
 
 const partnerSlots = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
 
-export default function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+
+  const dict = getDictionary(locale);
+  const t = dict.home;
+  const featured = getFeatured(dict);
+  const families = getFamilies(dict);
+  const catalogHref = localePath(locale, "products");
+
   return (
     <>
-      <span id="top" />
-      <Header />
+      <Header locale={locale} dict={dict} />
 
       <main id="main">
         {/* Hero ─────────────────────────────────────────────────────────── */}
@@ -39,31 +60,27 @@ export default function HomePage() {
           <div className="container hero__grid">
             <div className="hero__copy">
               <p className="hero__kicker">
-                {company.address.city} · {company.address.street}
+                {dict.company.address.city} · {dict.company.address.street}
               </p>
-              <h1>
-                Ամեն ինչ ձեր
-                <br />
-                արտադրության համար
-              </h1>
-              <p className="hero__lead">{heroLead}</p>
+              <h1>{dict.company.tagline}</h1>
+              <p className="hero__lead">{t.heroLead}</p>
               <div className="hero__cta">
-                <a className="btn btn-primary" href="#products">
-                  Դիտել տեսականին
-                </a>
+                <Link className="btn btn-primary" href={catalogHref}>
+                  {t.heroCtaPrimary}
+                </Link>
                 <a className="btn btn-ghost-dark" href="#contact">
-                  Ստանալ խորհրդատվություն
+                  {t.heroCtaSecondary}
                 </a>
               </div>
             </div>
             <div className="hero__media">
-              <ImageSlot dark label="Հերոս-լուսանկար՝ պահեստ / արտադրանք" />
+              <ImageSlot dark label={dict.imageSlots.hero} />
             </div>
           </div>
 
           <div className="hero__strip">
             <div className="container hero__strip-grid">
-              {props4.map((p) => (
+              {t.props4.map((p) => (
                 <div className="hero__prop" key={p.n}>
                   <div className="hero__prop-n">{p.n}</div>
                   <div className="hero__prop-t">{p.t}</div>
@@ -77,18 +94,16 @@ export default function HomePage() {
         <section className="about" id="about">
           <div className="container about__grid">
             <div className="about__media">
-              <ImageSlot label="Ընկերության / պահեստի լուսանկար" />
+              <ImageSlot label={dict.imageSlots.about} />
             </div>
             <div>
-              <p className="eyebrow">Մեր մասին</p>
-              <h2 className="section-title">
-                Մեկ մատակարար՝ արտադրական հանգույցի ամբողջ սպառվող մասի համար
-              </h2>
-              {aboutParagraphs.map((text) => (
+              <p className="eyebrow">{t.aboutEyebrow}</p>
+              <h2 className="section-title">{t.aboutTitle}</h2>
+              {t.aboutParagraphs.map((text) => (
                 <p key={text.slice(0, 24)}>{text}</p>
               ))}
               <div className="facts">
-                {facts.map((f) => (
+                {t.facts.map((f) => (
                   <div className="facts__item" key={f.l}>
                     <div className="facts__v">{f.v}</div>
                     <div className="facts__l">{f.l}</div>
@@ -104,29 +119,29 @@ export default function HomePage() {
           <div className="container">
             <div className="products__head">
               <div>
-                <p className="eyebrow">Տեսականի</p>
-                <h2 className="section-title">22 ապրանքախումբ՝ հինգ ուղղությամբ</h2>
+                <p className="eyebrow">{t.productsEyebrow}</p>
+                <h2 className="section-title">{t.productsTitle}</h2>
               </div>
-              <p className="products__intro">
-                Ամեն խումբ ունի առանձին տեղեկատվական էջ՝ նկարագրությամբ,
-                կիրառության ոլորտներով և տեխնիկական բնութագրերով։
-              </p>
+              <p className="products__intro">{t.productsIntro}</p>
             </div>
 
             <ul className="cards">
               {featured.map((p) => (
                 <li className="card" key={p.slug}>
-                  <Link className="card__link" href={`/products/${p.slug}`}>
+                  <Link
+                    className="card__link"
+                    href={localePath(locale, `products/${p.slug}`)}
+                  >
                     <div className="card__media">
                       <ImageSlot label={p.title} />
                     </div>
                     <div className="card__body">
-                      <p className="card__family">{familyLabels[p.family]}</p>
+                      <p className="card__family">{p.familyLabel}</p>
                       <h3>{p.title}</h3>
                       <p className="card__desc">{p.short}</p>
                       <div className="card__foot">
                         <span className="card__benefit">{p.benefit}</span>
-                        <span className="card__more">Մանրամասն →</span>
+                        <span className="card__more">{dict.ui.more}</span>
                       </div>
                     </div>
                   </Link>
@@ -135,7 +150,7 @@ export default function HomePage() {
             </ul>
 
             <div className="catalog">
-              <h3>Ամբողջ տեսականին</h3>
+              <h3>{t.catalogTitle}</h3>
               <ul className="catalog__grid">
                 {families.map((family) => (
                   <li key={family.slug}>
@@ -143,15 +158,19 @@ export default function HomePage() {
                     <ul className="catalog__items">
                       {family.items.map((item) => (
                         <li key={item.slug}>
-                          <Link href={`/products/${item.slug}`}>{item.title}</Link>
+                          <Link
+                            href={localePath(locale, `products/${item.slug}`)}
+                          >
+                            {item.title}
+                          </Link>
                         </li>
                       ))}
                     </ul>
                   </li>
                 ))}
               </ul>
-              <Link className="catalog__all" href="/products">
-                Ամբողջ տեսականին առանձին էջով →
+              <Link className="catalog__all" href={catalogHref}>
+                {t.catalogAll}
               </Link>
             </div>
           </div>
@@ -160,12 +179,10 @@ export default function HomePage() {
         {/* Why ──────────────────────────────────────────────────────────── */}
         <section className="why" id="why">
           <div className="container">
-            <p className="eyebrow">Ինչու ԱՐԿՈՄՊ</p>
-            <h2 className="section-title">
-              Չորս խոստում, որ ընկերությունն արդեն տալիս է
-            </h2>
+            <p className="eyebrow">{t.whyEyebrow}</p>
+            <h2 className="section-title">{t.whyTitle}</h2>
             <ul className="why__grid">
-              {why.map((w) => (
+              {t.why.map((w) => (
                 <li className="why__item" key={w.n}>
                   <div className="why__n">{w.n}</div>
                   <h3>{w.t}</h3>
@@ -180,17 +197,14 @@ export default function HomePage() {
         <section className="partners" id="partners">
           <div className="container">
             <div className="partners__head">
-              <h2>Գործընկերներ և մատակարարներ</h2>
-              <span className="pill-todo">լրացվում է</span>
+              <h2>{t.partnersTitle}</h2>
+              <span className="pill-todo">{dict.ui.fillingIn}</span>
             </div>
-            <p>
-              Ընթացիկ կայքի «Գործընկերներ» էջում իրական անուններ նշված չեն։
-              Բլոկը պատրաստ է՝ ընկերությունը տրամադրում է լոգոները և ցանկը։
-            </p>
+            <p>{t.partnersNote}</p>
             <div className="partners__grid">
               {partnerSlots.map((n) => (
                 <div className="partners__cell" key={n}>
-                  ԼՈԳՈ {n}
+                  {t.partnersLogo} {n}
                 </div>
               ))}
             </div>
@@ -202,20 +216,20 @@ export default function HomePage() {
           <div className="container">
             <div className="contact__grid">
               <div>
-                <p className="eyebrow">Կապ</p>
-                <h2 className="section-title">Ասեք՝ ինչ հանգույց է խափանվել</h2>
+                <p className="eyebrow">{t.contactEyebrow}</p>
+                <h2 className="section-title">{t.contactTitle}</h2>
 
                 <dl className="contact__list">
-                  {contacts.map((c) => (
-                    <div className="contact__row" key={c.k}>
-                      <dt className="contact__k">{c.k}</dt>
+                  {t.contactRows.map((row) => (
+                    <div className="contact__row" key={row.k}>
+                      <dt className="contact__k">{row.k}</dt>
                       <dd className="contact__v">
-                        {c.k === "Հեռախոս" ? (
-                          <a href={company.phoneHref}>{c.v}</a>
-                        ) : c.k === "Էլ․ փոստ" ? (
-                          <a href={`mailto:${company.email}`}>{c.v}</a>
+                        {row.v === contact.phone ? (
+                          <a href={contact.phoneHref}>{row.v}</a>
+                        ) : row.v === contact.email ? (
+                          <a href={`mailto:${contact.email}`}>{row.v}</a>
                         ) : (
-                          c.v
+                          row.v
                         )}
                       </dd>
                     </div>
@@ -238,7 +252,6 @@ export default function HomePage() {
                       <span
                         className="contact__social contact__social--todo"
                         key={s.label}
-                        title="Էջի հղումը լրացվում է"
                       >
                         {s.label}
                       </span>
@@ -248,40 +261,49 @@ export default function HomePage() {
               </div>
 
               <div className="form-card">
-                <h3>Հարցում</h3>
-                <p className="form-card__note">
-                  Պատասխանում ենք աշխատանքային օրերին։
-                </p>
-                <ContactForm />
+                <h3>{dict.form.title}</h3>
+                <p className="form-card__note">{dict.form.note}</p>
+                <ContactForm
+                  t={{
+                    name: dict.form.name,
+                    namePlaceholder: dict.form.namePlaceholder,
+                    contact: dict.form.contact,
+                    contactPlaceholder: dict.form.contactPlaceholder,
+                    message: dict.form.message,
+                    messagePlaceholder: dict.form.messagePlaceholder,
+                    submit: dict.form.submit,
+                    sending: dict.form.sending,
+                    ok: dict.form.ok,
+                    failed: dict.form.failed(contact.phone, contact.email),
+                    network: dict.form.network(contact.phone, contact.email),
+                  }}
+                />
               </div>
             </div>
 
             <div className="locate">
               <div className="locate__panel">
-                <p className="eyebrow">Գտնվելու վայրը</p>
+                <p className="eyebrow">{t.locateEyebrow}</p>
                 <p className="locate__address">
-                  ք․ {company.address.city},
+                  {dict.company.address.cityPrefix} {dict.company.address.city},
                   <br />
-                  {company.address.street}
+                  {dict.company.address.street}
                 </p>
-                <p className="locate__hours">{company.hours}</p>
+                <p className="locate__hours">{dict.company.hours}</p>
                 <a
                   className="locate__cta"
-                  href={company.mapsUrl}
+                  href={contact.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Ինչպես հասնել →
+                  {t.locateCta}
                 </a>
-                <p className="locate__fineprint">
-                  Քարտեզի կետը դրված է հասցեի մոտավոր կոորդինատներով։ Ճշգրիտ
-                  կոորդինատները ամրագրվում են մշակման փուլում։
-                </p>
+                <p className="locate__fineprint">{t.locateFineprint}</p>
               </div>
               <div className="locate__map">
                 <iframe
-                  title={`${company.legalName} — քարտեզ`}
-                  src={company.mapEmbedUrl}
+                  title={t.mapTitle}
+                  src={contact.mapEmbedUrl}
                   loading="lazy"
                 />
               </div>
@@ -290,7 +312,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} dict={dict} />
     </>
   );
 }

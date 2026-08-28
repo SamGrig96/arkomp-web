@@ -6,7 +6,7 @@
 
 ## Ինչու է սա SEO-friendly
 
-- **Ամբողջովին ստատիկ HTML** — բոլոր 24 էջերը prerender են լինում build-ի
+- **Ամբողջովին ստատիկ HTML** — բոլոր 48 էջերը prerender են լինում build-ի
   ժամանակ (`○ Static` / `● SSG`)։ Google-ը ստանում է ամբողջ տեքստը՝ առանց JavaScript-ի։
 - **Metadata** — title/description/canonical/OpenGraph/Twitter՝
   [`src/app/layout.tsx`](src/app/layout.tsx), արժեքները՝ մեկ տեղից՝
@@ -33,24 +33,51 @@ npm start
 
 ## Էջեր
 
+Կայքը երկլեզու է՝ **հայերեն (`/hy`)** և **ռուսերեն (`/ru`)**։ `/`-ը
+վերահղվում է `/hy`։ Երկու լեզուն էլ prefix ունեն՝ ինչպես arkomp.am-ի
+`/hy` և `/ru` URL-երը։
+
 | Route | Ինչ է |
 | --- | --- |
-| `/` | Գլխավոր՝ hero, Մեր մասին, Տեսականի, Ինչու մենք, Գործընկերներ, Կապ + քարտեզ |
-| `/products` | Ամբողջ տեսականին՝ 5 ուղղություն, 22 ապրանքախումբ |
-| `/products/[slug]` | Ապրանքախմբի էջ՝ 22 հատ, breadcrumb-ով |
-| `/api/contact` | Հարցման ձևի endpoint |
+| `/[locale]` | Գլխավոր՝ hero, Մեր մասին, Տեսականի, Ինչու մենք, Գործընկերներ, Կապ + քարտեզ |
+| `/[locale]/products` | Ամբողջ տեսականին՝ 5 ուղղություն, 22 ապրանքախումբ |
+| `/[locale]/products/[slug]` | Ապրանքախմբի էջ՝ 22 հատ, breadcrumb-ով |
+| `/api/contact` | Հարցման ձևի endpoint (լեզվից անկախ) |
 
-Սլագերը նույնն են, ինչ arkomp.am-ում (`poghpatya-chopanalarer` և այլն), որպեսզի հին URL-երից 301 redirect անելը հեշտ լինի։
+Ընդամենը 48 էջ, բոլորն էլ ստատիկ prerender։ Սլագերը նույնն են երկու լեզվում
+և համընկնում են arkomp.am-ի հետ (`poghpatya-chopanalarer` և այլն), որպեսզի
+հին URL-երից 301 redirect անելը հեշտ լինի։
+
+## Լեզուներ
+
+Ամբողջ տեքստը բառարաններում է․
+
+- [`src/lib/content/hy.ts`](src/lib/content/hy.ts) — հայերեն
+- [`src/lib/content/ru.ts`](src/lib/content/ru.ts) — ռուսերեն
+- [`src/lib/content/shared.ts`](src/lib/content/shared.ts) — լեզվից անկախը՝
+  հեռախոս, էլ․ փոստ, կոորդինատներ, 22 սլագ և դրանց ուղղությունը
+- [`src/lib/content/types.ts`](src/lib/content/types.ts) — բառարանի տիպը
+
+Տիպը երաշխավորում է, որ նոր տող ավելացնելիս երկու լեզուն էլ պիտի լրացվեն —
+այլապես build-ը չի անցնի։ Երրորդ լեզու ավելացնելու համար՝ նոր ֆայլ,
+`locales` զանգվածին ավելացում [`src/lib/i18n.ts`](src/lib/i18n.ts)-ում, և
+`getDictionary`-ի քարտեզում գրանցում։
+
+Ամեն էջ ունի `hreflang` (hy-AM, ru-RU, x-default→hy), իր canonical-ը,
+և թարգմանված JSON-LD։ Header-ի ՀԱՅ/РУС փոխարկիչը մնում է նույն էջում։
+
+Ֆոնտերը՝ Noto Sans Armenian (հայերեն) + Noto Sans (կիրիլիցա)՝ մեկ stack-ում,
+բրաուզերը գլիֆ առ գլիֆ ընտրում է ճիշտը։
 
 ## Կառուցվածք
 
 ```
 src/
   app/
-    layout.tsx            metadata + ֆոնտեր + JSON-LD
-    page.tsx              գլխավոր էջի բոլոր բաժինները
-    products/page.tsx     տեսականու էջ
-    products/[slug]/      ապրանքախմբի էջ (22 հատ, SSG)
+    layout.tsx            pass-through (html-ը [locale]-ի մեջ է)
+    [locale]/layout.tsx   html lang, metadata, ֆոնտեր, JSON-LD
+    [locale]/page.tsx     գլխավոր էջի բոլոր բաժինները
+    [locale]/products/    տեսականի + ապրանքախմբի էջեր (SSG)
     globals.css           դիզայն-տոկեններ և ընդհանուր ոճեր
     catalog.css           տեսականու և ապրանքի էջերի ոճեր
     sitemap.ts robots.ts opengraph-image.tsx
@@ -58,12 +85,13 @@ src/
   components/             Header, Footer, Breadcrumbs, ProductCta,
                           ContactForm, ImageSlot, JsonLd
   lib/
-    content.ts            ԷՋԻ ԱՄԲՈՂՋ ՏԵՔՍՏԸ (arkomp.am-ից)
-    site.ts               SEO արժեքներ
+    content/              hy.ts, ru.ts, shared.ts, types.ts
+    i18n.ts               locale-ներ և ուղիներ
+    site.ts               դոմեն, canonical, hreflang
 design/figma/             սկզբնական դիզայնի ֆայլերը (build-ի մեջ չեն մտնում)
 ```
 
-Տեքստ փոխելու համար խմբագրիր `src/lib/content.ts`-ը, ոչ թե JSX-ը։
+Տեքստ փոխելու համար խմբագրիր `src/lib/content/hy.ts`-ը և `ru.ts`-ը, ոչ թե JSX-ը։
 
 ## Ինչ է դեռ բաց
 
@@ -74,7 +102,6 @@ design/figma/             սկզբնական դիզայնի ֆայլերը (buil
   ավտոմատ մտնում են JSON-LD-ի `sameAs` դաշտը։
 - **Հարցման ձևը** — `/api/contact`-ը փոխանցում է `CONTACT_WEBHOOK_URL`-ին։
   Առանց այդ փոփոխականի ձևը ազնվորեն սխալ է վերադարձնում և առաջարկում զանգել։
-- **РУС տարբերակը** — header-ի փոխարկիչը դեռ դեկորատիվ է։
 - **21 ապրանքախմբի տեքստը** — դիզայնը լրիվ բովանդակություն տալիս է միայն
   «Պողպատյա ճոպանալարեր»-ի համար։ Մնացածի էջերը կան, բայց նկարագրության և
   բնութագրերի փոխարեն «լրացվում է» նշիչն է։ Տեքստը ավելացվում է

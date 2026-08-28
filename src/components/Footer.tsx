@@ -1,8 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { company, families, nav, socials } from "@/lib/content";
+import { contact, getFamilies, socials, type Dictionary } from "@/lib/content";
+import { localePath, type Locale } from "@/lib/i18n";
+import { navHref } from "./Header";
 
-export function Footer() {
+export function Footer({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const families = getFamilies(dict);
+
   return (
     <footer className="site-footer">
       <div className="container">
@@ -10,67 +20,65 @@ export function Footer() {
           <div>
             <Image
               src="/arkomp-logo-white.png"
-              alt={company.latinName}
+              alt={dict.company.latinName}
               width={335}
               height={111}
               style={{ height: 32, width: "auto" }}
             />
-            <p className="site-footer__about">
-              ԱՐԿՈՄՊ ՍՊԸ — ռետինե, ասբոտեխնիկական և մետաղյա արտադրանքի
-              մատակարար։ {company.tagline}։
-            </p>
+            <p className="site-footer__about">{dict.footer.about}</p>
           </div>
 
           <div>
-            <h2 className="site-footer__label">Կայք</h2>
+            <h2 className="site-footer__label">{dict.footer.siteLabel}</h2>
             <ul className="site-footer__links">
-              {nav.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href}>{item.label}</a>
+              {dict.nav.map((item) => (
+                <li key={item.key}>
+                  <Link href={navHref(locale, item.key)}>{item.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h2 className="site-footer__label">Ուղղություններ</h2>
+            <h2 className="site-footer__label">
+              {dict.footer.directionsLabel}
+            </h2>
             <ul className="site-footer__links">
               {families.map((family) => (
                 <li key={family.slug}>
-                  <Link href={`/products#${family.slug}`}>{family.label}</Link>
+                  <Link href={`${localePath(locale, "products")}#${family.slug}`}>
+                    {family.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h2 className="site-footer__label">Կոնտակտ</h2>
+            <h2 className="site-footer__label">{dict.footer.contactLabel}</h2>
             <ul className="site-footer__links">
-              <li>{company.address.full}</li>
+              <li>{dict.company.address.full}</li>
               <li>
-                <a className="site-footer__strong" href={company.phoneHref}>
-                  {company.phone}
+                <a className="site-footer__strong" href={contact.phoneHref}>
+                  {contact.phone}
                 </a>
               </li>
               <li>
                 <a
                   className="site-footer__strong"
-                  href={`mailto:${company.email}`}
+                  href={`mailto:${contact.email}`}
                 >
-                  {company.email}
+                  {contact.email}
                 </a>
               </li>
-              <li>{company.hours}</li>
+              <li>{dict.company.hours}</li>
             </ul>
           </div>
         </div>
 
         <div className="site-footer__bar">
-          <div>
-            © {new Date().getFullYear()} {company.legalName}։ Բոլոր
-            իրավունքները պաշտպանված են։
-          </div>
-          <nav aria-label="Սոցիալական ցանցեր">
+          <div>{dict.footer.rights(new Date().getFullYear())}</div>
+          <nav aria-label={dict.ui.socialsAria}>
             {socials.map((s) =>
               s.href ? (
                 <a

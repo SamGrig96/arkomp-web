@@ -1,35 +1,59 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MobileMenu } from "@/components/MobileMenu";
-import { company, nav } from "@/lib/content";
+import { contact, type Dictionary } from "@/lib/content";
+import { localeLabels, localePath, locales, type Locale } from "@/lib/i18n";
 
-/** `active` marks the current nav entry, e.g. "Տեսականի" on catalogue pages. */
-export function Header({ active }: { active?: string } = {}) {
+export const navHref = (locale: Locale, key: string) =>
+  key === "products"
+    ? localePath(locale, "products")
+    : `${localePath(locale)}#${key}`;
+
+/**
+ * `active` marks the current nav entry (e.g. the catalogue key on product
+ * pages). `altPath` is the current page's path without the locale prefix, so
+ * the language switcher stays on the same page.
+ */
+export function Header({
+  locale,
+  dict,
+  active,
+  altPath = "",
+}: {
+  locale: Locale;
+  dict: Dictionary;
+  active?: string;
+  altPath?: string;
+}) {
   return (
     <header className="site-header">
       <div className="container site-header__inner">
-        <Link className="brand" href="/" aria-label={`${company.name} — գլխավոր էջ`}>
+        <Link
+          className="brand"
+          href={localePath(locale)}
+          aria-label={dict.ui.homeAria}
+        >
           <Image
             className="brand__mark"
             src="/arkomp-logo.png"
-            alt={company.latinName}
+            alt={dict.company.latinName}
             width={335}
             height={111}
             priority
           />
           <span className="brand__legal">
-            ԱՐԿՈՄՊ
+            {dict.company.name}
             <br />
-            ՍՊԸ
+            {dict.company.legalShort}
           </span>
         </Link>
 
-        <nav className="site-nav" aria-label="Հիմնական">
-          {nav.map((item) => (
+        <nav className="site-nav" aria-label={dict.ui.navAria}>
+          {dict.nav.map((item) => (
             <Link
-              key={item.href}
-              href={item.href}
-              aria-current={item.label === active ? "page" : undefined}
+              key={item.key}
+              href={navHref(locale, item.key)}
+              aria-current={item.key === active ? "page" : undefined}
             >
               {item.label}
             </Link>
@@ -37,18 +61,47 @@ export function Header({ active }: { active?: string } = {}) {
         </nav>
 
         <div className="header-actions">
-          {/* Language switcher is presentational until the RU locale exists. */}
-          <div className="lang" aria-label="Լեզու">
-            <span className="lang__active">ՀԱՅ</span>
-            <span>РУС</span>
+          <div className="lang" aria-label={dict.ui.langAria}>
+            {locales.map((code) =>
+              code === locale ? (
+                <span key={code} className="lang__active" aria-current="true">
+                  {localeLabels[code]}
+                </span>
+              ) : (
+                <Link
+                  key={code}
+                  href={localePath(code, altPath)}
+                  hrefLang={code}
+                >
+                  {localeLabels[code]}
+                </Link>
+              ),
+            )}
           </div>
-          <a className="header-phone" href={company.phoneHref}>
-            {company.phone}
+          <a className="header-phone" href={contact.phoneHref}>
+            {contact.phone}
           </a>
-          <Link className="btn btn-primary btn-sm header-cta" href="/#contact">
-            Հարցում ուղարկել
+          <Link
+            className="btn btn-primary btn-sm header-cta"
+            href={`${localePath(locale)}#contact`}
+          >
+            {dict.ui.headerCta}
           </Link>
-          <MobileMenu />
+          <MobileMenu
+            links={dict.nav.map((item) => ({
+              href: navHref(locale, item.key),
+              label: item.label,
+            }))}
+            phone={contact.phone}
+            phoneHref={contact.phoneHref}
+            cta={{
+              href: `${localePath(locale)}#contact`,
+              label: dict.ui.headerCta,
+            }}
+            navAria={dict.ui.navAria}
+            openLabel={dict.ui.menuOpen}
+            closeLabel={dict.ui.menuClose}
+          />
         </div>
       </div>
     </header>

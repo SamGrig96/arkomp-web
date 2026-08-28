@@ -2,7 +2,23 @@
 
 import { useState } from "react";
 
-import { company } from "@/lib/content";
+/**
+ * Strings only: the dictionary holds formatting functions, which cannot be
+ * passed from a server component to a client one.
+ */
+export type FormLabels = {
+  name: string;
+  namePlaceholder: string;
+  contact: string;
+  contactPlaceholder: string;
+  message: string;
+  messagePlaceholder: string;
+  submit: string;
+  sending: string;
+  ok: string;
+  failed: string;
+  network: string;
+};
 
 type Status = { kind: "idle" | "sending" | "ok" | "err"; message?: string };
 
@@ -11,7 +27,7 @@ type Status = { kind: "idle" | "sending" | "ok" | "err"; message?: string };
  * variable is set and otherwise answers 501 — so the form always reports the
  * truth instead of faking a success the company would never receive.
  */
-export function ContactForm() {
+export function ContactForm({ t }: { t: FormLabels }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -30,43 +46,49 @@ export function ContactForm() {
 
       if (res.ok) {
         form.reset();
-        setStatus({
-          kind: "ok",
-          message: "Հարցումն ուղարկված է։ Կպատասխանենք աշխատանքային օրերին։",
-        });
+        setStatus({ kind: "ok", message: t.ok });
       } else {
         setStatus({
           kind: "err",
-          message:
-            body.error ??
-            `Ուղարկել չհաջողվեց։ Զանգահարեք ${company.phone} կամ գրեք ${company.email}։`,
+          message: body.error ?? t.failed,
         });
       }
     } catch {
       setStatus({
         kind: "err",
-        message:
-          `Կապի սխալ։ Զանգահարեք ${company.phone} կամ գրեք ${company.email}։`,
+        message: t.network,
       });
     }
   }
 
   return (
-    <form className="form" onSubmit={onSubmit} noValidate={false}>
+    <form className="form" onSubmit={onSubmit}>
       <label>
-        <span>Անուն</span>
-        <input name="name" type="text" placeholder="Ձեր անունը" required autoComplete="name" />
+        <span>{t.name}</span>
+        <input
+          name="name"
+          type="text"
+          placeholder={t.namePlaceholder}
+          required
+          autoComplete="name"
+        />
       </label>
       <label>
-        <span>Հեռախոս կամ էլ․ փոստ</span>
-        <input name="contact" type="text" placeholder="+374 …" required autoComplete="tel" />
+        <span>{t.contact}</span>
+        <input
+          name="contact"
+          type="text"
+          placeholder={t.contactPlaceholder}
+          required
+          autoComplete="tel"
+        />
       </label>
       <label>
-        <span>Հաղորդագրություն</span>
+        <span>{t.message}</span>
         <textarea
           name="message"
           rows={4}
-          placeholder="Ի՞նչ ապրանք է հետաքրքրում, ի՞նչ չափսի"
+          placeholder={t.messagePlaceholder}
           required
         />
       </label>
@@ -75,7 +97,7 @@ export function ContactForm() {
         type="submit"
         disabled={status.kind === "sending"}
       >
-        {status.kind === "sending" ? "Ուղարկվում է…" : "Ուղարկել հարցումը"}
+        {status.kind === "sending" ? t.sending : t.submit}
       </button>
       {status.message ? (
         <p
