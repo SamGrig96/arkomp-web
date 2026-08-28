@@ -25,11 +25,61 @@
 
 ## Սկսել
 
+### Նախապայմաններ
+
+- **Node.js ≥ 20.9** (Next 16-ի պահանջը)։ Մշակումը և Docker image-ը գնում են
+  Node 22-ի վրա — խորհուրդ ենք տալիս նույնը։
+- **npm** (գալիս է Node-ի հետ)։ Lock ֆայլը `package-lock.json` է, ուստի
+  yarn/pnpm-ի փոխարեն օգտագործիր npm։
+
+### Տեղադրում
+
 ```bash
-npm run dev      # http://localhost:3000
-npm run build
-npm start
+git clone https://github.com/SamGrig96/arkomp-web.git
+cd arkomp-web
+npm ci
 ```
+
+`npm ci`-ն տեղադրում է ճիշտ այն վերսիաները, որոնք lock ֆայլում են։ Եթե
+դիտավորյալ նոր փաթեթ ես ավելացնում, այդ դեպքում՝ `npm install`։
+
+### Միջավայրի փոփոխականներ
+
+```bash
+cp .env.example .env.local
+```
+
+PowerShell-ում՝ `Copy-Item .env.example .env.local`։
+
+Հետո բացիր `.env.local`-ը և լրացրու։ Լոկալ մշակման համար բավական է․
+
+```
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+`.env.local`-ը git-ում չի պահվում (`.gitignore`)։ Բոլոր փոփոխականների
+նկարագրությունը՝ [Կարգավորումներ](#կարգավորումներ) բաժնում։
+
+### Գործարկում
+
+```bash
+npm run dev
+```
+
+Բացիր http://localhost:3000 — կվերահղվի `/hy`։ Ֆայլերը պահելիս էջը
+ինքնաբերաբար թարմացվում է։
+
+### Հրամաններ
+
+| Հրաման | Ինչ է անում |
+| --- | --- |
+| `npm run dev` | Dev սերվեր՝ http://localhost:3000, hot reload-ով |
+| `npm run build` | Production build — բոլոր 48 էջը prerender է լինում |
+| `npm start` | Գործարկում է build-ը (նախ պետք է `npm run build`) |
+| `npm run lint` | ESLint (`eslint-config-next`) |
+
+Փոփոխություն push անելուց առաջ գործարկիր `npm run build`-ը՝ բովանդակության
+տիպերի սխալները (օր․՝ չլրացված ռուսերեն տող) դուրս են գալիս հենց build-ի ժամանակ։
 
 ## Էջեր
 
