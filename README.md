@@ -6,14 +6,15 @@
 
 ## Ինչու է սա SEO-friendly
 
-- **Ամբողջովին ստատիկ HTML** — `/` էջը prerender է լինում build-ի ժամանակ
-  (`○ Static`)։ Google-ը ստանում է ամբողջ տեքստը՝ առանց JavaScript-ի։
+- **Ամբողջովին ստատիկ HTML** — բոլոր 24 էջերը prerender են լինում build-ի
+  ժամանակ (`○ Static` / `● SSG`)։ Google-ը ստանում է ամբողջ տեքստը՝ առանց JavaScript-ի։
 - **Metadata** — title/description/canonical/OpenGraph/Twitter՝
   [`src/app/layout.tsx`](src/app/layout.tsx), արժեքները՝ մեկ տեղից՝
   [`src/lib/site.ts`](src/lib/site.ts)։
 - **JSON-LD** — `Organization` + `LocalBusiness` (հասցե, հեռախոս, կոորդինատներ,
   աշխատանքային ժամեր), `WebSite`, և ամբողջ տեսականին որպես `ItemList` (22
-  ապրանք)՝ [`src/components/JsonLd.tsx`](src/components/JsonLd.tsx)։
+  ապրանք)՝ [`src/components/JsonLd.tsx`](src/components/JsonLd.tsx)։ Ապրանքի
+  էջերում՝ `Product` և `BreadcrumbList`։
 - **`/sitemap.xml`** և **`/robots.txt`** — [`sitemap.ts`](src/app/sitemap.ts),
   [`robots.ts`](src/app/robots.ts)։
 - **OG նկար** — գեներացվում է [`opengraph-image.tsx`](src/app/opengraph-image.tsx)-ով։
@@ -48,10 +49,14 @@ src/
   app/
     layout.tsx            metadata + ֆոնտեր + JSON-LD
     page.tsx              գլխավոր էջի բոլոր բաժինները
-    globals.css           դիզայն-տոկեններ և բաղադրիչների ոճեր
+    products/page.tsx     տեսականու էջ
+    products/[slug]/      ապրանքախմբի էջ (22 հատ, SSG)
+    globals.css           դիզայն-տոկեններ և ընդհանուր ոճեր
+    catalog.css           տեսականու և ապրանքի էջերի ոճեր
     sitemap.ts robots.ts opengraph-image.tsx
     api/contact/route.ts  հարցման ձևի endpoint
-  components/             Header, Footer, ContactForm, ImageSlot, JsonLd
+  components/             Header, Footer, Breadcrumbs, ProductCta,
+                          ContactForm, ImageSlot, JsonLd
   lib/
     content.ts            ԷՋԻ ԱՄԲՈՂՋ ՏԵՔՍՏԸ (arkomp.am-ից)
     site.ts               SEO արժեքներ
@@ -70,8 +75,11 @@ design/figma/             սկզբնական դիզայնի ֆայլերը (buil
 - **Հարցման ձևը** — `/api/contact`-ը փոխանցում է `CONTACT_WEBHOOK_URL`-ին։
   Առանց այդ փոփոխականի ձևը ազնվորեն սխալ է վերադարձնում և առաջարկում զանգել։
 - **РУС տարբերակը** — header-ի փոխարկիչը դեռ դեկորատիվ է։
-- **Ապրանքի էջը** դիզայնում կա (`design/figma/2 - Product page.html`), բայց
-  դեռ իմպլեմենտացված չէ։
+- **21 ապրանքախմբի տեքստը** — դիզայնը լրիվ բովանդակություն տալիս է միայն
+  «Պողպատյա ճոպանալարեր»-ի համար։ Մնացածի էջերը կան, բայց նկարագրության և
+  բնութագրերի փոխարեն «լրացվում է» նշիչն է։ Տեքստը ավելացվում է
+  `src/lib/content.ts` → `products` զանգվածում (`lead`, `overview`,
+  `features`, `specs`)։
 
 ## Կարգավորումներ
 
