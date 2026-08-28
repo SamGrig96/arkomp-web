@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./catalog.css";
 
 /* ── Design tokens ─────────────────────────────────────────────────────────
    Values come from the design system page of the approved design

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -9,6 +10,7 @@ import {
   contacts,
   facts,
   families,
+  familyLabels,
   featured,
   heroLead,
   props4,
@@ -114,18 +116,20 @@ export default function HomePage() {
             <ul className="cards">
               {featured.map((p) => (
                 <li className="card" key={p.slug}>
-                  <div className="card__media">
-                    <ImageSlot label={p.title} />
-                  </div>
-                  <div className="card__body">
-                    <p className="card__family">{p.family}</p>
-                    <h3>{p.title}</h3>
-                    <p className="card__desc">{p.desc}</p>
-                    <div className="card__foot">
-                      <span className="card__benefit">{p.benefit}</span>
-                      <span className="card__more">Մանրամասն →</span>
+                  <Link className="card__link" href={`/products/${p.slug}`}>
+                    <div className="card__media">
+                      <ImageSlot label={p.title} />
                     </div>
-                  </div>
+                    <div className="card__body">
+                      <p className="card__family">{familyLabels[p.family]}</p>
+                      <h3>{p.title}</h3>
+                      <p className="card__desc">{p.short}</p>
+                      <div className="card__foot">
+                        <span className="card__benefit">{p.benefit}</span>
+                        <span className="card__more">Մանրամասն →</span>
+                      </div>
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -134,16 +138,21 @@ export default function HomePage() {
               <h3>Ամբողջ տեսականին</h3>
               <ul className="catalog__grid">
                 {families.map((family) => (
-                  <li key={family.label}>
+                  <li key={family.slug}>
                     <h4 className="catalog__label">{family.label}</h4>
                     <ul className="catalog__items">
                       {family.items.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item.slug}>
+                          <Link href={`/products/${item.slug}`}>{item.title}</Link>
+                        </li>
                       ))}
                     </ul>
                   </li>
                 ))}
               </ul>
+              <Link className="catalog__all" href="/products">
+                Ամբողջ տեսականին առանձին էջով →
+              </Link>
             </div>
           </div>
         </section>

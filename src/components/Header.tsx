@@ -1,11 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 import { company, nav } from "@/lib/content";
 
-export function Header() {
+/** `active` marks the current nav entry, e.g. "Տեսականի" on catalogue pages. */
+export function Header({ active }: { active?: string } = {}) {
   return (
     <header className="site-header">
       <div className="container site-header__inner">
-        <a className="brand" href="#top" aria-label={`${company.name} — գլխավոր էջ`}>
+        <Link className="brand" href="/" aria-label={`${company.name} — գլխավոր էջ`}>
           <Image
             className="brand__mark"
             src="/arkomp-logo.png"
@@ -19,13 +21,17 @@ export function Header() {
             <br />
             ՍՊԸ
           </span>
-        </a>
+        </Link>
 
         <nav className="site-nav" aria-label="Հիմնական">
           {nav.map((item) => (
-            <a key={item.href} href={item.href}>
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={item.label === active ? "page" : undefined}
+            >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -38,9 +44,9 @@ export function Header() {
           <a className="header-phone" href={company.phoneHref}>
             {company.phone}
           </a>
-          <a className="btn btn-primary btn-sm" href="#contact">
+          <Link className="btn btn-primary btn-sm" href="/#contact">
             Հարցում ուղարկել
-          </a>
+          </Link>
         </div>
       </div>
     </header>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { company, families, nav, socials } from "@/lib/content";
 
 export function Footer() {
@@ -35,8 +36,8 @@ export function Footer() {
             <h2 className="site-footer__label">Ուղղություններ</h2>
             <ul className="site-footer__links">
               {families.map((family) => (
-                <li key={family.label}>
-                  <a href="#products">{family.label}</a>
+                <li key={family.slug}>
+                  <Link href={`/products#${family.slug}`}>{family.label}</Link>
                 </li>
               ))}
             </ul>

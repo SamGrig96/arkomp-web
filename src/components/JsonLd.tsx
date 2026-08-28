@@ -1,4 +1,4 @@
-import { company, families, socials } from "@/lib/content";
+import { company, familyLabels, products, socials } from "@/lib/content";
 import { absoluteUrl, site } from "@/lib/site";
 
 /**
@@ -68,17 +68,14 @@ export function JsonLd() {
         "@type": "ItemList",
         "@id": absoluteUrl("/#catalog"),
         name: "Տեսականի",
-        numberOfItems: families.reduce((n, f) => n + f.items.length, 0),
-        itemListElement: families
-          .flatMap((family) =>
-            family.items.map((item) => ({ item, category: family.label })),
-          )
-          .map((entry, i) => ({
-            "@type": "ListItem",
-            position: i + 1,
-            name: entry.item,
-            category: entry.category,
-          })),
+        numberOfItems: products.length,
+        itemListElement: products.map((product, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: product.title,
+          category: familyLabels[product.family],
+          url: absoluteUrl(`/products/${product.slug}`),
+        })),
       },
     ],
   };
