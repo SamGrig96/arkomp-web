@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# buy-am-landing
 
-## Getting Started
+SEO-ի համար պատրաստ Next.js 16 (App Router) պրոյեկտ՝ դիզայնը սերվերում
+ռենդերվող էջերի վերածելու համար։
 
-First, run the development server:
+## Ինչու է սա SEO-friendly
+
+- **Server-rendered HTML** — էջերը prerender են լինում build-ի ժամանակ
+  (`○ Static`), այսինքն Google-ը ստանում է ամբողջական HTML՝ առանց JS-ի։
+- **Metadata API** — `title`/`description`/canonical/OpenGraph/Twitter՝
+  [`src/app/layout.tsx`](src/app/layout.tsx)-ում, արժեքները՝ մեկ տեղից՝
+  [`src/lib/site.ts`](src/lib/site.ts)։
+- **`/sitemap.xml`** — [`src/app/sitemap.ts`](src/app/sitemap.ts)
+- **`/robots.txt`** — [`src/app/robots.ts`](src/app/robots.ts)
+- **JSON-LD** (Organization + WebSite + SearchAction) —
+  [`src/components/JsonLd.tsx`](src/components/JsonLd.tsx)
+- **OG նկար** ավտոմատ գեներացվում է՝ [`src/app/opengraph-image.tsx`](src/app/opengraph-image.tsx)
+
+## Սկսել
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev      # http://localhost:3000
+npm run build    # production build
+npm start        # production server
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Կարգավորումներ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Բոլոր SEO արժեքները՝ `src/lib/site.ts` (անուն, title, description, keywords,
+locale)։ Դոմենը՝ `NEXT_PUBLIC_SITE_URL` env փոփոխականով — այն օգտագործվում է
+canonical URL-երի, og:image-ի, sitemap-ի և robots-ի համար, ուստի **պարտադիր է
+սահմանել hosting-ի վրա**։ Առանց դրա canonical-ները կմնան localhost։
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Հոստինգ
 
-## Learn More
+### Vercel (ամենապարզը)
+1. `git push` GitHub/GitLab-ի վրա։
+2. Vercel → New Project → ընտրել ռեպոն։
+3. Environment Variables → `NEXT_PUBLIC_SITE_URL=https://<domain>`։
+4. Deploy → դոմեն կցել։
 
-To learn more about Next.js, take a look at the following resources:
+### Docker (ցանկացած VPS)
+`output: "standalone"`-ի շնորհիվ image-ը փոքր է և չի պահանջում `node_modules`։
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=https://example.com -t buy-am-landing .
+docker run -p 3000:3000 -e NEXT_PUBLIC_SITE_URL=https://example.com buy-am-landing
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Nginx-ի հետևում՝ proxy_pass դեպի `http://127.0.0.1:3000`։
 
-## Deploy on Vercel
+### Ստատիկ hosting
+Եթե ամբողջ կայքը մնա ստատիկ, `next.config.ts`-ում կարելի է դնել
+`output: "export"` և deploy անել ցանկացած ստատիկ hosting-ի (Netlify, S3, nginx)։
+Այդ դեպքում `next/image`-ի optimization-ը պետք է անջատել։
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy-ից հետո
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Google Search Console → ավելացնել domain, ուղարկել `/sitemap.xml`։
+- Ստուգել [Rich Results Test](https://search.google.com/test/rich-results)-ով JSON-LD-ն։
+- Ստուգել `curl -s https://<domain> | grep '<h1'` — բովանդակությունը պետք է լինի HTML-ում։
+
+## Դիզայն
+
+Դիզայնի սկզբնական ֆայլերը՝ [`design/`](design) ֆոլդերում (build-ի մեջ չեն մտնում)։
