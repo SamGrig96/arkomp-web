@@ -37,8 +37,19 @@
 }
 
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: 76px;
+}
+
+/* Smooth scrolling only while an in-page anchor is the target.
+   Setting it unconditionally on <html> breaks route navigation: the router's
+   jump to the top of the new page animates from the old scroll position and is
+   cut short by the render, so the visitor lands mid-page. Scoping it to
+   :target keeps anchor links smooth and leaves navigation (and back/forward
+   scroll restoration) instant. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(:target) {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
