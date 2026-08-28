@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Emits .next/standalone so the Docker image can run without node_modules.
-  // Vercel ignores this; it only matters for self-hosting.
-  output: "standalone",
+  // Vercel builds its own server output and its post-build step trips over the
+  // standalone tree, so only ask for it off-Vercel (VERCEL is set on every
+  // Vercel build).
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   poweredByHeader: false,
   compress: true,
   // "/" has no content of its own: both languages are prefixed, matching
