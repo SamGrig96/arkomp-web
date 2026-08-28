@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { JetBrains_Mono, Noto_Sans_Armenian } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
 import { site } from "@/lib/site";
 import "./globals.css";
+
+const notoArmenian = Noto_Sans_Armenian({
+  subsets: ["armenian", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-noto-armenian",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -42,24 +57,30 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
+  themeColor: "#0f1720",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang={site.locale}>
-      <body className="antialiased">
+    <html
+      lang={site.locale}
+      className={`${notoArmenian.variable} ${jetbrainsMono.variable}`}
+    >
+      <body>
         <JsonLd />
+        <a className="skip-link" href="#main">
+          Անցնել բովանդակությանը
+        </a>
         {children}
       </body>
     </html>
