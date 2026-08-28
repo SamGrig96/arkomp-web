@@ -1,0 +1,12 @@
+# Netlify detects Next.js on its own and installs the runtime, so there is no
+# build config here — only the one thing it cannot infer.
+#
+# While the site is a shared preview, every response carries noindex: anyone
+# with the link can open it, search engines stay out. Delete this block on the
+# day arkomp.am points here, and set NEXT_PUBLIC_SITE_URL at the same time so
+# the canonical URLs stop saying localhost.
+[[headers]]
+  for = "/*"
+
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
