@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { company, nav } from "@/lib/content";
 
@@ -12,10 +11,6 @@ import { company, nav } from "@/lib/content";
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const pathname = usePathname();
-
-  // Close when a link lands on a new route.
-  useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
     if (!open) return;
