@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MobileMenu } from "@/components/MobileMenu";
 import { company, nav } from "@/lib/content";
 
 /** `active` marks the current nav entry, e.g. "Տեսականի" on catalogue pages. */
@@ -44,9 +45,10 @@ export function Header({ active }: { active?: string } = {}) {
           <a className="header-phone" href={company.phoneHref}>
             {company.phone}
           </a>
-          <Link className="btn btn-primary btn-sm" href="/#contact">
+          <Link className="btn btn-primary btn-sm header-cta" href="/#contact">
             Հարցում ուղարկել
           </Link>
+          <MobileMenu />
         </div>
       </div>
     </header>
