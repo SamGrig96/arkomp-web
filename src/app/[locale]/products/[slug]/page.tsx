@@ -6,13 +6,8 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ImageSlot } from "@/components/ImageSlot";
 import { ProductCta } from "@/components/ProductCta";
-import {
-  contact,
-  getDictionary,
-  getProduct,
-  getRelated,
-  productSlugs,
-} from "@/lib/content";
+import { getCatalogProduct, getCatalogRelated } from "@/lib/api";
+import { contact, getDictionary, productSlugs } from "@/lib/content";
 import { isLocale, localePath, locales } from "@/lib/i18n";
 import { absoluteUrl, alternatesFor } from "@/lib/site";
 
@@ -32,7 +27,7 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   if (!isLocale(locale)) return {};
   const dict = getDictionary(locale);
-  const product = getProduct(dict, slug);
+  const product = await getCatalogProduct(locale, slug, dict);
   if (!product) return {};
 
   const description =
@@ -61,10 +56,11 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (!isLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
-  const product = getProduct(dict, slug);
+  const product = await getCatalogProduct(locale, slug, dict);
   if (!product) notFound();
 
-  const related = getRelated(dict, product);
+  const related = await getCatalogRelated(locale, product, 3, dict);
+  const [cover, ...detailShots] = product.images;
   const specs = product.specs ?? dict.defaultSpecs;
   const description =
     product.lead ??
@@ -122,14 +118,28 @@ export default async function ProductPage({ params }: { params: Params }) {
           <div className="container phero__grid">
             <div className="phero__gallery">
               <div className="phero__main">
-                <ImageSlot label={dict.imageSlots.productMain} />
+                <ImageSlot
+                  label={dict.imageSlots.productMain}
+                  src={cover?.url}
+                  alt={cover?.alt}
+                  sizes="(max-width: 900px) 100vw, 560px"
+                  priority
+                />
               </div>
               <div className="phero__thumbs">
-                {[1, 2, 3].map((n) => (
-                  <div className="phero__thumb" key={n}>
-                    <ImageSlot label={dict.imageSlots.detail(n)} />
-                  </div>
-                ))}
+                {[1, 2, 3].map((n) => {
+                  const shot = detailShots[n - 1];
+                  return (
+                    <div className="phero__thumb" key={n}>
+                      <ImageSlot
+                        label={dict.imageSlots.detail(n)}
+                        src={shot?.url}
+                        alt={shot?.alt}
+                        sizes="(max-width: 900px) 33vw, 180px"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -230,7 +240,12 @@ export default async function ProductPage({ params }: { params: Params }) {
                   <li className="related__card" key={r.slug}>
                     <Link href={localePath(locale, `products/${r.slug}`)}>
                       <div className="related__media">
-                        <ImageSlot label={r.title} />
+                        <ImageSlot
+                          label={r.title}
+                          src={r.images[0]?.url}
+                          alt={r.images[0]?.alt}
+                          sizes="(max-width: 900px) 100vw, 320px"
+                        />
                       </div>
                       <div className="related__body">
                         <h3>{r.title}</h3>

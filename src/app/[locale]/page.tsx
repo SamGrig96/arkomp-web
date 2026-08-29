@@ -5,13 +5,8 @@ import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ImageSlot } from "@/components/ImageSlot";
-import {
-  contact,
-  getDictionary,
-  getFamilies,
-  getFeatured,
-  socials,
-} from "@/lib/content";
+import { getCatalogFamilies, getCatalogFeatured } from "@/lib/api";
+import { contact, getDictionary, socials } from "@/lib/content";
 import { isLocale, localePath, locales } from "@/lib/i18n";
 import { alternatesFor } from "@/lib/site";
 
@@ -46,8 +41,10 @@ export default async function HomePage({
 
   const dict = getDictionary(locale);
   const t = dict.home;
-  const featured = getFeatured(dict);
-  const families = getFamilies(dict);
+  const [featured, families] = await Promise.all([
+    getCatalogFeatured(locale, dict),
+    getCatalogFamilies(locale, dict),
+  ]);
   const catalogHref = localePath(locale, "products");
 
   return (
@@ -133,7 +130,11 @@ export default async function HomePage({
                     href={localePath(locale, `products/${p.slug}`)}
                   >
                     <div className="card__media">
-                      <ImageSlot label={p.title} />
+                      <ImageSlot
+                        label={p.title}
+                        src={p.images[0]?.url}
+                        alt={p.images[0]?.alt}
+                      />
                     </div>
                     <div className="card__body">
                       <p className="card__family">{p.familyLabel}</p>
