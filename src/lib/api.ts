@@ -36,6 +36,17 @@ export const apiBaseUrl = (
  */
 const REVALIDATE_SECONDS = 300;
 
+/**
+ * Development is where the catalogue is edited, and a five-minute window there
+ * only makes it look like the admin endpoints did nothing. Skip the cache while
+ * developing so a refresh shows the edit; production keeps the ISR window.
+ * The two options are mutually exclusive — sending both makes Next ignore each.
+ */
+const cacheOptions: RequestInit =
+  process.env.NODE_ENV === "production"
+    ? { next: { revalidate: REVALIDATE_SECONDS } }
+    : { cache: "no-store" };
+
 // ── Wire types (mirror the API's Arkomp.Api/Contracts/Dtos.cs) ──────────────
 
 export type ApiImage = {
@@ -106,7 +117,7 @@ async function apiGet<T>(path: string): Promise<Fetched<T>> {
 
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
-      next: { revalidate: REVALIDATE_SECONDS },
+      ...cacheOptions,
       headers: { Accept: "application/json" },
     });
 
