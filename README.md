@@ -198,18 +198,27 @@ FE-ն կանչում է `NEXT_PUBLIC_API_URL`-ով։ **Եթե API-ն միացա�
 
 ## Հոստինգ
 
-### Vercel
-1. `git push` GitHub-ի վրա։
-2. Vercel → New Project → ընտրել ռեպոն։
-3. Environment Variables → `NEXT_PUBLIC_SITE_URL=https://arkomp.am`։
-4. Deploy → դոմեն կցել։
+Երկու փոփոխականն էլ պետք են **build-ի պահին**, ոչ թե գործարկման․
+`NEXT_PUBLIC_*`-ը ինլայն է դրվում bundle-ի մեջ, իսկ `NEXT_PUBLIC_API_URL`-ը նաև
+որոշում է, թե որ հոսթից է `next/image`-ը թույլ տալիս նկար բեռնել
+(`next.config.ts` → `remotePatterns`)։ Փոխելուց հետո պետք է նորից build անել։
+
+### Netlify (անվճար)
+1. New site → ընտրել ռեպոն։ Next-ը ինքն է ճանաչվում։
+2. Environment variables․
+   - `NEXT_PUBLIC_SITE_URL` — կայքի հասցեն
+   - `NEXT_PUBLIC_API_URL` — API-ի հասցեն
+3. Deploy։
+
+Netlify-ի անվճար պլանը թույլ է տալիս կոմերցիոն օգտագործում։ **Vercel-ի Hobby
+պլանը՝ ոչ** — ընկերության կայքի համար այնտեղ պետք է Pro։
 
 ### Docker (ցանկացած VPS)
 `output: "standalone"`-ի շնորհիվ image-ը փոքր է։
 
 ```bash
-docker build --build-arg NEXT_PUBLIC_SITE_URL=https://arkomp.am -t arkomp-web .
-docker run -p 3000:3000 -e NEXT_PUBLIC_SITE_URL=https://arkomp.am arkomp-web
+docker build --build-arg NEXT_PUBLIC_SITE_URL=https://arkomp.am --build-arg NEXT_PUBLIC_API_URL=https://api.arkomp.am -t arkomp-web .
+docker run -p 3000:3000 arkomp-web
 ```
 
 Nginx-ի հետևում՝ `proxy_pass http://127.0.0.1:3000;`։
