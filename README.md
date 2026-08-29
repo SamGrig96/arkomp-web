@@ -135,6 +135,7 @@ src/
   components/             Header, Footer, Breadcrumbs, ProductCta,
                           ContactForm, ImageSlot, JsonLd
   lib/
+    api.ts                տեսականին՝ BE-ից, fallback-ը՝ content/-ից
     content/              hy.ts, ru.ts, shared.ts, types.ts
     i18n.ts               locale-ներ և ուղիներ
     site.ts               դոմեն, canonical, hreflang
@@ -143,10 +144,35 @@ design/figma/             սկզբնական դիզայնի ֆայլերը (buil
 
 Տեքստ փոխելու համար խմբագրիր `src/lib/content/hy.ts`-ը և `ru.ts`-ը, ոչ թե JSX-ը։
 
+## Տեսականու API
+
+Ապրանքների տվյալները՝ վերնագրերը, նկարագրությունները, բնութագրերը և
+լուսանկարները, գալիս են .NET API-ից, որն ապրում է առանձին repo-ում՝
+[SamGrig96/arkomp-api](https://github.com/SamGrig96/arkomp-api)։ Այնտեղի
+README-ն նկարագրում է բոլոր endpoint-ները և կարգավորումները։
+
+```bash
+git clone https://github.com/SamGrig96/arkomp-api.git
+cd arkomp-api/Arkomp.Api && dotnet run
+```
+
+Բացվում է http://localhost:5080 (Swagger UI)։ Առաջին գործարկման ժամանակ
+ինքնուրույն ստեղծում է SQLite բազան և լցնում `src/lib/content`-ից արտահանված
+բովանդակությամբ, ուստի կատալոգը լրիվ է հենց սկզբից։
+
+FE-ն կանչում է `NEXT_PUBLIC_API_URL`-ով։ **Եթե API-ն միացած չէ կամ փոփոխականը
+դատարկ է, սայթը չի կոտրվում** — `src/lib/api.ts`-ը հետ է գնում `src/lib/content`-ի
+տեքստերին (առանց նկարների)։ Այսինքն՝ `npm run dev`-ը աշխատում է առանց BE-ի էլ։
+
+Նկարներ ավելացնելու համար՝ Swagger → **Authorize** (բանալին՝
+`arkomp-dev-key` լոկալ) → `POST /api/admin/products/{slug}/images`։
+
 ## Ինչ է դեռ բաց
 
-- **Լուսանկարներ** — 8 `ImageSlot` կա (հերոս, «Մեր մասին», 6 ապրանքի քարտ)։
-  Երբ նկարները լինեն, դիր `public/`-ում և փոխարինիր `next/image`-ով։
+- **Լուսանկարներ** — ապրանքների նկարներն արդեն վերցվում են API-ից. վերբեռնիր
+  Swagger-ով, և քարտերն ու ապրանքի էջը ցույց կտան դրանք (`ImageSlot`-ը
+  ինքնաբերաբար placeholder-ից անցնում է `next/image`-ի)։ Հերոսի և «Մեր մասին»
+  բաժնի նկարները դեռ placeholder են — դրանք կատալոգի մաս չեն։
 - **Գործընկերների լոգոները** — բլոկը պատրաստ է, ցանկը՝ ընկերությունից։
 - **Սոցցանցերի հղումները** — `src/lib/content.ts` → `socials`։ Երբ լրացվեն,
   ավտոմատ մտնում են JSON-LD-ի `sameAs` դաշտը։
@@ -163,6 +189,7 @@ design/figma/             սկզբնական դիզայնի ֆայլերը (buil
 | Փոփոխական | Ինչի համար |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Դոմենը՝ canonical, og:image, sitemap, robots։ **Պարտադիր** hosting-ի վրա։ |
+| `NEXT_PUBLIC_API_URL` | Տեսականու API-ի հասցեն (լոկալ՝ `http://localhost:5080`)։ Դատարկ լինելիս սայթն աշխատում է `src/lib/content`-ի տեքստերով։ |
 | `CONTACT_WEBHOOK_URL` | Ուր ուղարկվեն հարցումները (Apps Script / Make / CRM)։ |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Search Console-ի հաստատման կոդը։ |
 

@@ -6,7 +6,8 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ImageSlot } from "@/components/ImageSlot";
 import { ProductCta } from "@/components/ProductCta";
-import { getDictionary, getFamilies, productSlugs } from "@/lib/content";
+import { getCatalogFamilies } from "@/lib/api";
+import { getDictionary, productSlugs } from "@/lib/content";
 import { isLocale, localePath, locales } from "@/lib/i18n";
 import { alternatesFor } from "@/lib/site";
 
@@ -38,7 +39,7 @@ export default async function ProductsPage({
   if (!isLocale(locale)) notFound();
 
   const dict = getDictionary(locale);
-  const families = getFamilies(dict);
+  const families = await getCatalogFamilies(locale, dict);
   const catalogLabel =
     dict.nav.find((item) => item.key === "products")?.label ?? "";
 
@@ -79,7 +80,11 @@ export default async function ProductsPage({
                       href={localePath(locale, `products/${product.slug}`)}
                     >
                       <div className="card__media">
-                        <ImageSlot label={product.title} />
+                        <ImageSlot
+                          label={product.title}
+                          src={product.images[0]?.url}
+                          alt={product.images[0]?.alt}
+                        />
                       </div>
                       <div className="card__body">
                         <h3>{product.title}</h3>

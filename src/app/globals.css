@@ -1090,3 +1090,8 @@ a.contact__social:hover {
     text-align: center;
   }
 }
+
+/* A photo served by the API fills the same box the placeholder occupies. */
+.imgslot__img {
+  object-fit: cover;
+}
